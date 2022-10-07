@@ -202,10 +202,10 @@ storiesOf("Annotator", module)
       regionClsList={["Hand", "Face"]}
       regionTagList={["Open Pinch", "Closed Pinch", "In Frame"]}
       showTags={false}
-      allowedArea={{ x: 0, y: 0.6, w: 0.3, h: 0.3 }}
+      allowedArea={{ x: 0, y: 0, w: 1, h: 1 }}
       images={[
         {
-          src: "https://s3.amazonaws.com/jobstorage.workaround.online/Atheer/video-frames/VID_20190111_161054.mp4_frame017.png",
+          src: "https://placekitten.com/408/287",
           name: "Bounding Box Test",
           regions: [],
         },

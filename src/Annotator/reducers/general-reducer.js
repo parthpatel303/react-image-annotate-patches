@@ -16,14 +16,43 @@ import setInLocalStorage from "../../utils/set-in-local-storage"
 const getRandomId = () => Math.random().toString().split(".")[1]
 
 export default (state: MainLayoutState, action: Action) => {
+  const { currentImageIndex, pathToActiveImage, activeImage } =
+      getActiveImage(state)
+
+  const getRegionIndex = (region) => {
+    const regionId =
+        typeof region === "string" || typeof region === "number"
+            ? region
+            : region.id
+    if (!activeImage) return null
+    const regionIndex = (activeImage.regions || []).findIndex(
+        (r) => r.id === regionId
+    )
+    return regionIndex === -1 ? null : regionIndex
+  }
+
+  const getRegion = (regionId) => {
+    if (!activeImage) return null
+    const regionIndex = getRegionIndex(regionId)
+    if (regionIndex === null) return [null, null]
+    const region = activeImage.regions[regionIndex]
+    return [region, regionIndex]
+  }
+
   if (
     state.allowedArea &&
     state.selectedTool !== "modify-allowed-area" &&
     ["MOUSE_DOWN", "MOUSE_UP", "MOUSE_MOVE"].includes(action.type)
   ) {
     const aa = state.allowedArea
-    action.x = clamp(action.x, aa.x, aa.x + aa.w)
-    action.y = clamp(action.y, aa.y, aa.y + aa.h)
+    if (state?.mode?.mode === "MOVE_REGION") {
+      const [regionSelected] = getRegion(state?.mode?.regionId);
+      action.x = clamp(action.x, aa.x + regionSelected.w / 2, aa.x + aa.w - regionSelected.w / 2)
+      action.y = clamp(action.y, aa.y + regionSelected.h / 2, aa.y + aa.h - regionSelected.h / 2)
+    } else {
+      action.x = clamp(action.x, aa.x, aa.x + aa.w)
+      action.y = clamp(action.y, aa.y, aa.y + aa.h)
+    }
   }
 
   if (action.type === "ON_CLS_ADDED" && action.cls && action.cls !== "") {
@@ -44,27 +73,6 @@ export default (state: MainLayoutState, action: Action) => {
     state = setIn(state, ["lastAction"], action)
   }
 
-  const { currentImageIndex, pathToActiveImage, activeImage } =
-    getActiveImage(state)
-
-  const getRegionIndex = (region) => {
-    const regionId =
-      typeof region === "string" || typeof region === "number"
-        ? region
-        : region.id
-    if (!activeImage) return null
-    const regionIndex = (activeImage.regions || []).findIndex(
-      (r) => r.id === regionId
-    )
-    return regionIndex === -1 ? null : regionIndex
-  }
-  const getRegion = (regionId) => {
-    if (!activeImage) return null
-    const regionIndex = getRegionIndex(regionId)
-    if (regionIndex === null) return [null, null]
-    const region = activeImage.regions[regionIndex]
-    return [region, regionIndex]
-  }
   const modifyRegion = (regionId, obj) => {
     const [region, regionIndex] = getRegion(regionId)
     if (!region) return state
